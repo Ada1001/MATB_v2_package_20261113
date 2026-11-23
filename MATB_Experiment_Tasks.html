@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MATB Experiment Tasks</title>
+  <style>
+    :root {
+      --bg: #07111e;
+      --panel: rgba(14, 29, 48, .94);
+      --panel-2: rgba(20, 40, 65, .92);
+      --line: rgba(125, 184, 224, .2);
+      --text: #d8efff;
+      --muted: #7e9bb4;
+      --cyan: #39d5ff;
+      --green: #59efad;
+      --yellow: #ffd166;
+      --red: #ff6b7b;
+      --purple: #b58cff;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { overflow-x: hidden; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1600px; margin: 0 auto; padding: 18px 22px 30px; }
+    .noise { pointer-events: none; position: fixed; inset: 0; opacity: .06; background-image: radial-gradient(#fff .7px, transparent .7px); background-size: 5px 5px; mix-blend-mode: screen; }
+
+    .topbar { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(120deg, rgba(11, 27, 48, .98), rgba(8, 18, 31, .92)); box-shadow: var(--shadow); }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 280px; }
+    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; color: #00131b; background: linear-gradient(135deg, var(--cyan), var(--green)); font-weight: 900; letter-spacing: .08em; box-shadow: 0 0 26px rgba(57, 213, 255, .45); }
+    .brand h1 { margin: 0; font-size: 16px; letter-spacing: .15em; text-transform: uppercase; }
+    .brand p { margin: 3px 0 0; color: var(--muted); font-size: 11px; letter-spacing: .08em; }
+    .hud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+    .pill, .btn { border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; color: var(--text); background: rgba(23, 48, 76, .76); }
+    .pill { font-size: 12px; letter-spacing: .06em; }
+    .pill strong { color: #fff; font-size: 14px; }
+    .btn { transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(57, 213, 255, .8); background: rgba(25, 66, 99, .9); }
+    .btn.primary { background: linear-gradient(135deg, #1f718c, #2a9f83); border-color: rgba(89, 239, 173, .6); color: #ecffff; font-weight: 800; }
+    .btn.danger { border-color: rgba(255, 107, 123, .45); color: #ffc6ce; }
+    .btn.marker { border-color: rgba(181, 140, 255, .55); color: #eadfff; }
+    .btn:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+    .timer { min-width: 102px; text-align: center; font-variant-numeric: tabular-nums; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .9fr) minmax(260px, .72fr); gap: 14px; margin-top: 14px; }
+    .stack { display: grid; gap: 14px; align-content: start; }
+    .panel { border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, var(--panel), rgba(10, 22, 38, .94)); box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 10px; border-bottom: 1px solid rgba(125, 184, 224, .13); }
+    .panel-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
+    .panel-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px currentColor; }
+    .subtle { color: var(--muted); font-size: 11px; }
+    .panel-body { padding: 13px 14px 15px; }
+
+    .tracking-wrap { padding: 12px 14px 14px; }
+    #trackingCanvas { display: block; width: 100%; height: 390px; border-radius: 14px; border: 1px solid rgba(57, 213, 255, .3); background: #06121e; box-shadow: inset 0 0 70px rgba(57, 213, 255, .08); }
+    .tracking-hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .stat { padding: 9px 10px; border: 1px solid rgba(125, 184, 224, .16); border-radius: 10px; background: rgba(11, 25, 42, .76); }
+    .stat span { display: block; color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+    .stat strong { display: block; margin-top: 2px; color: #fff; font-size: 17px; font-variant-numeric: tabular-nums; }
+    .keys { margin-top: 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    kbd { display: inline-block; min-width: 23px; padding: 2px 5px; text-align: center; border: 1px solid rgba(125, 184, 224, .38); border-bottom-width: 2px; border-radius: 5px; color: var(--text); background: rgba(16, 36, 59, .9); font-size: 10px; }
+
+    .monitor-grid { display: grid; gap: 9px; }
+    .monitor-row { padding: 9px; border: 1px solid rgba(125, 184, 224, .16); border-radius: 11px; background: rgba(9, 23, 39, .78); }
+    .monitor-row.fault { border-color: rgba(255, 107, 123, .7); box-shadow: 0 0 16px rgba(255, 107, 123, .18); animation: blink .7s ease-in-out infinite alternate; }
+    @keyframes blink { from { background: rgba(65, 22, 40, .45); } to { background: rgba(102, 28, 45, .72); } }
+    .monitor-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+    .monitor-name { font-weight: 800; }
+    .monitor-status { color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+    .fault .monitor-status { color: var(--red); }
+    .gauge { height: 7px; margin: 8px 0; overflow: hidden; border-radius: 20px; background: rgba(126, 155, 180, .18); }
+    .gauge i { display: block; height: 100%; width: 60%; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--cyan)); transition: width .18s ease; }
+    .fault .gauge i { background: linear-gradient(90deg, #ffab79, var(--red)); }
+    .monitor-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .ack { padding: 5px 8px; border-radius: 7px; font-size: 10px; }
+
+    .resource-grid { display: grid; gap: 9px; }
+    .resource-row { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 9px; }
+    .resource-label { color: var(--muted); font-size: 11px; font-weight: 800; }
+    .resource-bar { position: relative; height: 12px; overflow: hidden; border-radius: 99px; background: rgba(126, 155, 180, .18); }
+    .resource-bar::after { content: ""; position: absolute; left: 45%; right: 35%; top: 0; bottom: 0; background: rgba(89, 239, 173, .12); border-left: 1px dashed rgba(89, 239, 173, .65); border-right: 1px dashed rgba(89, 239, 173, .65); }
+    .resource-bar i { position: relative; z-index: 1; display: block; height: 100%; width: 60%; border-radius: inherit; background: linear-gradient(90deg, var(--purple), var(--cyan)); transition: width .18s ease; }
+    .resource-value { width: 34px; text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .resource-controls { display: flex; gap: 5px; margin-left: 55px; }
+    .mini-btn { padding: 4px 8px; border: 1px solid rgba(125, 184, 224, .22); border-radius: 7px; color: var(--text); background: rgba(21, 46, 73, .68); font-size: 11px; }
+    .mini-btn:hover { border-color: var(--cyan); }
+    .resource-hint { margin-top: 11px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+    .comms-card { min-height: 165px; display: grid; gap: 10px; align-content: start; }
+    .prompt { padding: 12px; border: 1px solid rgba(181, 140, 255, .28); border-radius: 11px; background: linear-gradient(140deg, rgba(58, 38, 95, .34), rgba(25, 40, 64, .5)); }
+    .prompt small { color: #c7b8ef; font-size: 10px; letter-spacing: .12em; }
+    .prompt strong { display: block; margin-top: 6px; color: #fff; font-size: 18px; letter-spacing: .22em; }
+    .response-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .response-btn { padding: 9px 4px; border: 1px solid rgba(181, 140, 255, .28); border-radius: 8px; color: #eee5ff; background: rgba(50, 35, 83, .58); font-weight: 800; }
+    .response-btn:hover { background: rgba(91, 56, 144, .8); }
+    .response-btn.correct { border-color: var(--green); box-shadow: 0 0 14px rgba(89, 239, 173, .24); }
+
+    .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .metric-card { padding: 10px; border: 1px solid rgba(125, 184, 224, .16); border-radius: 11px; background: rgba(10, 24, 41, .82); }
+    .metric-card span { color: var(--muted); font-size: 10px; }
+    .metric-card strong { display: block; margin-top: 3px; color: #fff; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .load-meter { height: 9px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: rgba(126, 155, 180, .18); }
+    .load-meter i { display: block; height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--yellow), var(--red)); transition: width .25s ease; }
+    .load-caption { display: flex; justify-content: space-between; margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .event-log { max-height: 178px; overflow: auto; display: grid; gap: 5px; }
+    .event { display: grid; grid-template-columns: 54px 1fr auto; gap: 5px; align-items: center; padding: 5px 7px; border-radius: 7px; background: rgba(18, 36, 57, .68); font-size: 10px; }
+    .event time { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .event b { color: var(--text); }
+    .event em { color: var(--green); font-style: normal; }
+    .event.bad em { color: var(--red); }
+    .empty { color: var(--muted); font-size: 11px; text-align: center; padding: 20px 8px; }
+
+    .setup { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .task-toggle-field { grid-column: 1 / -1; margin: 0; padding: 9px 10px 10px; border: 1px solid rgba(125, 184, 224, .2); border-radius: 10px; background: rgba(8, 22, 39, .52); }
+    .task-toggle-field legend { padding: 0 5px; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .task-toggle-list { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .task-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-size: 11px; cursor: pointer; user-select: none; }
+    .task-toggle input { width: 14px; height: 14px; margin: 0; accent-color: var(--cyan); }
+    .task-toggle input:disabled { cursor: not-allowed; }
+    .task-toggle:has(input:disabled) { cursor: not-allowed; opacity: .65; }
+    .task-disabled { opacity: .42; filter: saturate(.55); }
+    .task-disabled .panel-body { pointer-events: none; }
+    .field label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+    .field input, .field select { width: 100%; padding: 7px 8px; border: 1px solid rgba(125, 184, 224, .24); border-radius: 8px; color: var(--text); background: rgba(8, 22, 39, .85); outline: none; }
+    .field input:focus, .field select:focus { border-color: var(--cyan); }
+    input[type="range"] { accent-color: var(--cyan); }
+    .footer-note { margin-top: 12px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .radar-card { padding-top: 10px; }
+    #radarCanvas { display: block; width: 100%; height: 220px; border-radius: 12px; border: 1px solid rgba(255, 107, 123, .28); background: #120b15; box-shadow: inset 0 0 36px rgba(255, 107, 123, .08); }
+    .radar-readout { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; margin-top: 9px; padding: 8px 10px; border: 1px solid rgba(255, 107, 123, .2); border-radius: 9px; background: rgba(48, 18, 33, .42); font-size: 11px; }
+    .radar-readout span { color: var(--muted); }
+    .radar-readout strong { color: #ffb6bf; letter-spacing: .1em; }
+    .radar-readout em { color: var(--red); font-style: normal; font-variant-numeric: tabular-nums; }
+    .throttle-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .throttle-label { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
+    #throttleValue { color: #fff; font-size: 30px; font-variant-numeric: tabular-nums; }
+    .controller-status { color: var(--muted); font-size: 10px; }
+    .controller-status.connected { color: var(--green); }
+    .controller-status.calibrating { color: var(--yellow); }
+    .throttle-gauge { position: relative; height: 22px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: rgba(126, 155, 180, .18); }
+    .throttle-gauge::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #b58cff, #39d5ff, #59efad, #ffd166, #ff6b7b); opacity: .78; }
+    .throttle-zone { position: absolute; z-index: 2; top: 0; bottom: 0; left: 45%; width: 20%; border-left: 1px dashed rgba(255, 255, 255, .8); border-right: 1px dashed rgba(255, 255, 255, .8); background: rgba(89, 239, 173, .15); }
+    .throttle-gauge i { position: absolute; z-index: 3; top: 3px; left: 0; height: 16px; width: 50%; border-radius: 99px; border-right: 3px solid #fff; background: rgba(255, 255, 255, .28); transition: width .08s linear; }
+    .throttle-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; color: var(--muted); font-size: 10px; }
+    .throttle-readout b { display: block; margin-top: 2px; color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .controller-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .controller-actions .btn { padding: 6px 8px; font-size: 10px; }
+    .throttle-config { display: flex; align-items: center; gap: 8px; margin-top: 9px; color: var(--muted); font-size: 10px; }
+    .throttle-config select { min-width: 112px; padding: 5px 7px; border: 1px solid rgba(138, 190, 225, .22); border-radius: 7px; background: rgba(7, 20, 34, .8); color: var(--text); font: inherit; }
+    .throttle-zone-label { margin-left: auto; color: var(--green); font-variant-numeric: tabular-nums; }
+
+    body.main-screen .layout { grid-template-columns: minmax(220px, .78fr) minmax(0, 1.45fr) minmax(270px, .9fr); gap: 8px; margin-top: 10px; align-items: stretch; align-content: stretch; }
+    body.main-screen .layout .panel-head { padding: 9px 11px 8px; }
+    body.main-screen .layout .panel-body { padding: 9px 10px 10px; }
+    body.main-screen .layout .tracking-wrap { padding: 8px 10px 10px; }
+    body.main-screen .task-column { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+    body.main-screen .task-column > .panel { min-width: 0; }
+    body.main-screen .task-column > .panel:last-child { flex: 1 1 auto; min-height: 0; }
+    body.main-screen .center-stack > .panel { flex: 1 1 auto; min-height: 0; }
+    body.main-screen .monitor-stack { display: none; }
+    body.main-screen .layout .keys, body.main-screen .layout .resource-hint, body.main-screen .layout #commsHint { display: none; }
+    body.main-screen .layout .monitor-grid { gap: 6px; }
+    body.main-screen .layout .monitor-row { padding: 7px; }
+    body.main-screen .layout .gauge { margin: 6px 0; }
+    body.main-screen .layout .comms-card { min-height: 0; gap: 7px; }
+    body.main-screen .layout .prompt { padding: 10px; }
+    body.main-screen .layout .radar-card { padding-top: 7px; }
+    body.main-screen .layout #radarCanvas { height: 190px; }
+    body.main-screen .layout .throttle-gauge { margin-top: 7px; }
+    body.main-screen .layout .controller-actions { margin-top: 7px; }
+    body.main-screen .layout .tracking-hud { margin-top: 7px; gap: 6px; }
+    body.main-screen .layout .stat { padding: 7px 8px; }
+    body.main-screen .layout .response-btn { padding: 7px 4px; }
+    body.main-screen .layout .radar-readout { margin-top: 7px; padding: 7px 9px; }
+    body.main-screen .layout .resource-grid { gap: 6px; }
+    @media (max-width: 1180px) and (min-width: 761px) {
+      body.main-screen .layout { grid-template-columns: minmax(170px, .8fr) minmax(240px, 1.25fr) minmax(210px, .95fr); column-gap: 8px; }
+    }
+    @media (max-width: 760px) {
+      .app { padding: 12px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .hud { justify-content: flex-start; }
+      .tracking-hud { grid-template-columns: repeat(2, 1fr); }
+      .setup { grid-template-columns: repeat(2, 1fr); }
+      #trackingCanvas { height: 280px; }
+      #radarCanvas { height: 190px; }
+      body.main-screen .layout { grid-template-columns: 1fr; align-items: stretch; }
+      body.main-screen .center-stack > .panel { height: auto; }
+    }
+
+  </style>
+<script src="MATB_Experiment_Timing.js"></script><style>
+body.embedded .topbar,body.embedded main.app > section.panel,body.embedded .monitor-stack {display:none!important}
+body.embedded {padding:4px!important} body.embedded .app {max-width:none}
+body.embedded .task-disabled {display:none!important}
+body.embedded.solo .layout {display:block!important;max-width:950px;margin:10px auto}
+body.embedded.solo .task-column:has(> .panel:not(.task-disabled)) {display:flex!important}
+body.embedded.solo .task-column:not(:has(> .panel:not(.task-disabled))) {display:none!important}
+body.embedded.solo #radarCanvas {height:300px}
+body.embedded.low:not(.solo) .layout {grid-template-columns:minmax(280px,1fr) minmax(0,1.6fr)!important;max-width:1160px;width:92%;margin:10px auto!important;gap:12px!important}
+body.embedded.low:not(.solo) .center-stack {grid-column:2;grid-row:1}
+body.embedded.low:not(.solo) .right-stack {grid-column:1;grid-row:1}
+body.embedded.low:not(.solo) .left-stack {display:none!important}
+</style></head>
+<body class="main-screen">
+  <div class="noise"></div>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div>
+          <h1>MATB · Cognitive Load Arena</h1>
+          <p>多任务操作范式 / 游戏化认知负荷训练原型</p>
+        </div>
+      </div>
+      <div class="hud">
+        <div class="pill">状态 <strong id="sessionStatus">待机</strong></div>
+        <div class="pill timer">剩余 <strong id="timeLeft">02:00</strong></div>
+        <button class="btn primary" id="startBtn">开始任务</button>
+        <button class="btn" id="pauseBtn" disabled>暂停</button>
+        <button class="btn danger" id="endBtn" disabled>结束</button>
+        <button class="btn marker" id="markerBtn" title="记录一个同步标记">同步标记 M</button>
+        <button class="btn" id="monitorBtn" title="在第二个屏幕打开实时监控">打开副屏</button>
+        <button class="btn" id="exportBtn">导出数据</button>
+      </div>
+    </header>
+
+    <section class="panel" style="margin-top:14px">
+      <div class="panel-head">
+        <div class="panel-title"><span class="dot" style="color:var(--yellow);background:var(--yellow)"></span>实验设置</div>
+        <div class="subtle">建议先用 2–3 分钟熟悉交互，再进入正式采集</div>
+      </div>
+      <div class="panel-body">
+        <div class="setup">
+          <div class="field"><label for="durationInput">时长（秒）</label><input id="durationInput" type="number" min="30" max="1800" value="120" /></div>
+          <div class="field"><label for="difficultyInput">难度 <span id="difficultyLabel">3 / 5</span></label><input id="difficultyInput" type="range" min="1" max="5" value="3" /></div>
+          <div class="field"><label for="seedInput">试次编号</label><input id="seedInput" type="text" value="P01-B01" /></div>
+          <div class="field"><label for="modeSelect">模式</label><select id="modeSelect"><option value="research">研究模式（全量记录）</option><option value="training">训练模式（即时提示）</option></select></div>
+          <fieldset class="task-toggle-field">
+            <legend>任务模块（可自定义启用）</legend>
+            <div class="task-toggle-list">
+              <label class="task-toggle"><input type="checkbox" data-task-toggle="tracking" checked />01 Tracking</label>
+              <label class="task-toggle"><input type="checkbox" data-task-toggle="monitor" checked />02 Monitoring</label>
+              <label class="task-toggle"><input type="checkbox" data-task-toggle="throttle" checked />03 Throttle</label>
+              <label class="task-toggle"><input type="checkbox" data-task-toggle="comms" checked />04 Communication</label>
+              <label class="task-toggle"><input type="checkbox" data-task-toggle="radar" checked />05 Radar</label>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="task-column left-stack">
+        <section class="panel" data-task-panel="radar">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--red);background:var(--red)"></span>05 · Radar Approach</div><div class="subtle">左前 / 右前快速接近目标</div></div>
+          <div class="panel-body radar-card">
+            <canvas id="radarCanvas" width="620" height="260"></canvas>
+            <div class="radar-readout"><span id="radarStatus">等待任务开始</span><strong id="radarSide">—</strong><em id="radarDistance">—</em></div>
+            <div class="keys">红点持续约 2 秒并快速靠近：左前目标按 <kbd>←</kbd>，右前目标按 <kbd>→</kbd>。只有雷达事件出现时，左右键才用于雷达判定。</div>
+          </div>
+        </section>
+        <section class="panel" data-task-panel="throttle">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--yellow);background:var(--yellow)"></span>03 · Throttle Control</div><div class="subtle">PNX-2113PRO · 加速 / 减速</div></div>
+          <div class="panel-body">
+            <div class="throttle-top"><span class="throttle-label">THROTTLE</span><strong id="throttleValue">50%</strong><span class="controller-status" id="controllerStatus">未连接</span></div>
+            <div class="throttle-config"><label for="throttleModeSelect">控制目标</label><select id="throttleModeSelect"><option value="accelerate">加速</option><option value="decelerate">减速</option></select><span class="throttle-zone-label" id="throttleZoneLabel">最佳区间 65–85%</span></div>
+            <div class="throttle-gauge"><i id="throttleBar" style="width:50%"></i><span class="throttle-zone"></span></div>
+            <div class="throttle-readout"><span>输入轴 <b id="throttleAxis">自动</b></span><span>原始值 <b id="throttleRaw">0.00</b></span><span>状态 <b id="throttleBand">中位</b></span></div>
+            <div class="controller-actions"><button class="btn" id="calibrateBtn">校准 Throttle</button><button class="btn" id="axisPrevBtn">轴 −</button><button class="btn" id="axisNextBtn">轴 +</button></div>
+            <div class="resource-hint">插入 PNX-2113PRO 后点击“校准 Throttle”，在 2 秒内移动油门杆。页面会自动选取变化最大的轴；“轴 − / 轴 +”可手动切换轴。</div>
+          </div>
+        </section>
+      </div>
+
+      <div class="task-column center-stack">
+        <section class="panel" data-task-panel="tracking">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--cyan);background:var(--cyan)"></span>01 · Tracking</div><div class="subtle">保持飞行器在目标区内</div></div>
+          <div class="tracking-wrap">
+            <canvas id="trackingCanvas" width="920" height="520"></canvas>
+            <div class="tracking-hud">
+              <div class="stat"><span>保持率</span><strong id="trackingHold">0%</strong></div>
+              <div class="stat"><span>追踪得分</span><strong id="trackingScore">0</strong></div>
+              <div class="stat"><span>目标偏差</span><strong id="trackingError">0 px</strong></div>
+              <div class="stat"><span>当前速度</span><strong id="trackingSpeed">0</strong></div>
+            </div>
+            <div class="keys">控制：仅使用 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动蓝色飞行器；按 <kbd>M</kbd> 写入同步标记。</div>
+          </div>
+        </section>
+      </div>
+
+      <div class="task-column right-stack">
+        <section class="panel" data-task-panel="monitor">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--red);background:var(--red)"></span>02 · System Monitoring</div><div class="subtle">故障出现时快速确认</div></div>
+          <div class="panel-body">
+            <div class="monitor-grid" id="monitorGrid"></div>
+            <div class="keys">快捷键：<kbd>3</kbd>–<kbd>6</kbd> 确认对应通道故障。</div>
+          </div>
+        </section>
+        <section class="panel" data-task-panel="comms">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--purple);background:var(--purple)"></span>04 · Visual Communication</div><div class="subtle">视觉频道选择</div></div>
+          <div class="panel-body comms-card">
+            <div class="prompt"><small>INCOMING CHANNEL</small><strong id="commsPrompt">等待任务开始</strong></div>
+            <div class="subtle" id="commsHint">开始后记住频道编号，并按 7–10 选择。</div>
+            <div class="response-grid" id="responseGrid"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack monitor-stack">
+        <section class="panel">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--green);background:var(--green)"></span>实时指标</div><div class="subtle">用于认知负荷判断的代理指标</div></div>
+          <div class="panel-body">
+            <div class="metrics">
+              <div class="metric-card"><span>综合正确率</span><strong id="accuracyMetric">—</strong></div>
+              <div class="metric-card"><span>平均反应时</span><strong id="rtMetric">—</strong></div>
+              <div class="metric-card"><span>任务事件</span><strong id="eventMetric">0</strong></div>
+              <div class="metric-card"><span>同步标记</span><strong id="markerMetric">0</strong></div>
+            </div>
+            <div class="subtle" style="margin-top:12px">实时负荷指数</div>
+            <div class="load-meter"><i id="loadMeter"></i></div>
+            <div class="load-caption"><span>低</span><strong id="loadLabel">待机</strong><span>高</span></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--cyan);background:var(--cyan)"></span>事件记录</div><div class="subtle">相对时间戳 / 可导出</div></div>
+          <div class="panel-body"><div class="event-log" id="eventLog"><div class="empty">开始任务后，这里会显示响应事件。</div></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><div class="panel-title"><span class="dot" style="color:var(--yellow);background:var(--yellow)"></span>实验提示</div></div>
+          <div class="panel-body footer-note">本原型默认不连接 EEG 设备。事件记录包含 <b>task / type / tMs / rtMs / expected / actual / difficulty</b> 字段，并额外记录 <b>throttle / radar</b> 任务事件；后续可把同步标记直接映射到 EEG 触发通道。</div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const fmtTime = (sec) => { const s = Math.max(0, Math.ceil(sec)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+      let frameId = null; const now = () => performance.now();
+      const random = (lo, hi) => lo + Math.random() * (hi - lo);
+      const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const monitorBus = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('matb-v2-monitor') : null;
+
+      const canvas = $('trackingCanvas');
+      const ctx = canvas.getContext('2d');
+      const radarCanvas = $('radarCanvas');
+      const radarCtx = radarCanvas.getContext('2d');
+      const state = {
+        running: false, paused: false, ended: false, startAt: 0, pausedAt: 0, durationMs: 120000, elapsedMs: 0, difficulty: 3,
+        events: [], markers: 0, responses: [], correct: 0, metrics: { accuracy: null, meanRtMs: null, load: 0 },
+        tracking: { x: canvas.width * .5, y: canvas.height * .5, tx: canvas.width * .5, ty: canvas.height * .5, insideMs: 0, activeMs: 0, score: 0, speed: 180 },
+        keys: new Set(), monitors: [],
+        enabledTasks: { tracking: true, monitor: true, throttle: true, comms: true, radar: true },
+        throttle: { value: 50, raw: 0, mode: 'accelerate', nextSwitchAt: 0, switchCount: 0, axisIndex: null, padIndex: null, padId: '', inZoneMs: 0, activeMs: 0, samples: {}, calibrating: false, calibrationStart: 0 },
+        comms: { current: null, nextAt: 0, startedAt: 0 },
+        radar: { current: null, nextAt: 0, sweep: 0, hitCount: 0 },
+        gamepadButtons: { previous: [] },
+        lastFrame: now(), lastUi: 0, monitorNextAt: 0, lastPadPoll: 0,
+      };
+
+      let eventPlan = {monitor:[],comms:[]}, eventCursor = {monitor:0,comms:0};
+      function nextScheduled(task) { eventCursor[task] += 1; return eventPlan[task][eventCursor[task]] ?? Infinity; }
+      function initSchedule() {
+        const profile = MATBTiming.profiles[window.experimentLoad || 'low'];
+        eventCursor = {monitor:0,comms:0};
+        eventPlan = {monitor:isTaskEnabled('monitor') ? MATBTiming.schedule(state.durationMs,profile.monitorPerMinute,Math.random,4300-state.difficulty*250) : [],comms:isTaskEnabled('comms') ? MATBTiming.schedule(state.durationMs,profile.commsPerMinute,Math.random,6500) : []};
+        state.monitorNextAt = eventPlan.monitor[0] ?? Infinity; state.comms.nextAt = eventPlan.comms[0] ?? Infinity;
+      }
+      const monitorNames = ['反应堆冷却', '姿态控制', '氧气循环', '数据链路'];
+      const responseOptions = ['7', '8', '9', '10'];
+      const throttleProfiles = {
+        accelerate: { label: '加速', min: 65, max: 85, target: 75 },
+        decelerate: { label: '减速', min: 15, max: 35, target: 25 },
+      };
+      const getThrottleProfile = () => throttleProfiles[state.throttle.mode] || throttleProfiles.accelerate;
+      const taskKeys = ['tracking', 'monitor', 'throttle', 'comms', 'radar'];
+      const isTaskEnabled = (task) => state.enabledTasks[task] !== false;
+      function readEnabledTasks() {
+        const next = {};
+        document.querySelectorAll('[data-task-toggle]').forEach((input) => { next[input.dataset.taskToggle] = Boolean(input.checked); });
+        taskKeys.forEach((task) => { if (typeof next[task] !== 'boolean') next[task] = true; });
+        return next;
+      }
+      function syncTaskSettingsUi() {
+        document.querySelectorAll('[data-task-toggle]').forEach((input) => { input.disabled = state.running; });
+        document.querySelectorAll('[data-task-panel]').forEach((panel) => {
+          const enabled = isTaskEnabled(panel.dataset.taskPanel);
+          panel.classList.toggle('task-disabled', !enabled);
+          panel.setAttribute('aria-disabled', String(!enabled));
+        });
+        const throttleEnabled = isTaskEnabled('throttle');
+        ['calibrateBtn', 'axisPrevBtn', 'axisNextBtn'].forEach((id) => { if ($(id)) $(id).disabled = state.running || !throttleEnabled; });
+        if ($('throttleModeSelect')) $('throttleModeSelect').disabled = state.running || !throttleEnabled;
+        if (!state.running && throttleEnabled) $('throttleModeSelect').disabled = false;
+      }
+      function applyDisabledTaskUi() {
+        if (!isTaskEnabled('monitor')) state.monitors.forEach((m) => { m.fault = false; });
+        if (!isTaskEnabled('comms')) { state.comms.current = null; $('commsPrompt').textContent = '任务关闭'; $('commsHint').textContent = '可在实验设置中重新启用此模块。'; $('responseGrid').innerHTML = ''; }
+        if (!isTaskEnabled('radar')) { state.radar.current = null; $('radarStatus').textContent = '任务关闭'; $('radarSide').textContent = '—'; $('radarDistance').textContent = '—'; drawRadar(); }
+        if (!isTaskEnabled('throttle')) { state.throttle.calibrating = false; $('controllerStatus').textContent = '任务关闭'; $('controllerStatus').className = 'controller-status'; }
+        syncTaskSettingsUi();
+      }
+
+      function initPanels() {
+        state.monitors = monitorNames.map((name, i) => ({ name, value: random(48, 76), fault: false, faultAt: 0, startedAt: 0, index: i }));
+        $('monitorGrid').innerHTML = state.monitors.map((m, i) => `<div class="monitor-row" id="monitor-${i}"><div class="monitor-top"><span class="monitor-name">${i + 3}. ${m.name}</span><span class="monitor-status" id="monitor-status-${i}">STABLE</span></div><div class="gauge"><i id="monitor-gauge-${i}" style="width:${m.value}%"></i></div><div class="monitor-actions"><span class="subtle" id="monitor-value-${i}">${Math.round(m.value)}%</span><button class="btn ack" data-monitor="${i}">ACK <kbd>${i + 3}</kbd></button></div></div>`).join('');
+        document.querySelectorAll('[data-monitor]').forEach(btn => btn.addEventListener('click', () => acknowledgeMonitor(Number(btn.dataset.monitor))));
+        drawTracking(); drawRadar(); updateThrottleUi();
+      }
+
+      function monitorSnapshot() {
+        const fault = state.monitors.find(m => m.fault);
+        const radar = state.radar.current;
+        return {
+          session: { running: state.running, paused: state.paused, ended: state.ended, elapsedMs: state.elapsedMs, trial: $('seedInput')?.value || '', difficulty: state.difficulty, markers: state.markers, eventCount: state.events.length },
+          metrics: { ...state.metrics, eventCount: state.events.length, markers: state.markers },
+          tasks: {
+            tracking: { enabled: isTaskEnabled('tracking'), holdPercent: state.tracking.activeMs ? Math.round(state.tracking.insideMs / state.tracking.activeMs * 100) : 0, score: Math.round(state.tracking.score), status: isTaskEnabled('tracking') ? (state.running ? 'ACTIVE' : state.ended ? 'ENDED' : 'READY') : 'OFF' },
+            monitor: { enabled: isTaskEnabled('monitor'), fault: isTaskEnabled('monitor') && Boolean(fault), channel: fault?.name || '', status: isTaskEnabled('monitor') ? (fault ? 'FAULT' : 'STABLE') : 'OFF' },
+            throttle: { enabled: isTaskEnabled('throttle'), value: Math.round(state.throttle.value), axisIndex: state.throttle.axisIndex, mode: state.throttle.mode, modeLabel: getThrottleProfile().label, zone: [getThrottleProfile().min, getThrottleProfile().max], target: getThrottleProfile().target, switchCount: state.throttle.switchCount, nextSwitchMs: state.running && isTaskEnabled('throttle') ? Math.max(0, state.throttle.nextSwitchAt - state.elapsedMs) : null, status: !isTaskEnabled('throttle') ? 'OFF' : state.throttle.padIndex == null ? 'NO DEVICE' : state.throttle.axisIndex == null ? 'CALIBRATE' : 'CONNECTED' },
+            comms: { enabled: isTaskEnabled('comms'), expected: state.comms.current?.expected || '', status: !isTaskEnabled('comms') ? 'OFF' : state.comms.current ? 'PROMPT' : 'READY' },
+            radar: { enabled: isTaskEnabled('radar'), active: isTaskEnabled('radar') && Boolean(radar), side: radar?.side || '', distance: radar ? `${Math.round((1 - radar.progress) * 100)}%` : '—', status: !isTaskEnabled('radar') ? 'OFF' : radar ? 'APPROACH' : 'SCAN' },
+          },
+          events: state.events.slice(-80),
+        };
+      }
+      function publishMonitorSnapshot() {
+        const payload = monitorSnapshot();
+        if (monitorBus) monitorBus.postMessage({ type: 'snapshot', payload });
+        try { localStorage.setItem('matb-v2-state', JSON.stringify({ type: 'snapshot', payload })); } catch { /* storage may be unavailable */ }
+      }
+      if (monitorBus) monitorBus.addEventListener('message', (event) => { if (event.data?.type === 'monitor-ready') publishMonitorSnapshot(); });
+
+      function setStatus(text) { $('sessionStatus').textContent = text; publishMonitorSnapshot(); }
+      function logEvent(task, type, details = {}, result = 'ok') {
+        const event = { task, type, tMs: Math.round(state.elapsedMs), ...MATBTiming.stamp(), difficulty: state.difficulty, ...details };
+        state.events.push(event); window.dispatchEvent(new CustomEvent('matb-task-event', {detail:event}));
+        renderEvent(event, result);
+        if (monitorBus) monitorBus.postMessage({ type: 'event', payload: { event } });
+        try { localStorage.setItem('matb-v2-state', JSON.stringify({ type: 'snapshot', payload: monitorSnapshot() })); } catch { /* storage may be unavailable */ }
+      }
+      function renderEvent(event, result) {
+        const log = $('eventLog');
+        if (log.querySelector('.empty')) log.innerHTML = '';
+        const row = document.createElement('div'); row.className = `event ${result === 'bad' ? 'bad' : ''}`;
+        const t = `${(event.tMs / 1000).toFixed(1)}s`;
+        row.innerHTML = `<time>${t}</time><b>${event.task} · ${event.type}</b><em>${event.rtMs != null ? `${Math.round(event.rtMs)}ms` : result === 'bad' ? 'MISS' : 'OK'}</em>`;
+        log.prepend(row);
+        while (log.children.length > 26) log.lastElementChild.remove();
+      }
+      function pushResponse(task, correct, rtMs, expected, actual) {
+        state.responses.push({ task, correct, rtMs }); if (correct) state.correct += 1;
+        logEvent(task, correct ? 'correct' : 'error', { expected, actual, rtMs }, correct ? 'ok' : 'bad');
+      }
+
+      function resetSession() {
+        state.enabledTasks = readEnabledTasks();
+        state.running = false; state.paused = false; state.ended = false; state.startAt = 0; state.elapsedMs = 0; state.events = []; state.responses = []; state.correct = 0; state.markers = 0; state.lastFrame = now(); state.monitorNextAt = 0;
+        state.tracking = { x: canvas.width * .5, y: canvas.height * .5, tx: canvas.width * .5, ty: canvas.height * .5, insideMs: 0, activeMs: 0, score: 0, speed: 180 };
+        state.throttle = { value: 50, raw: 0, mode: $('throttleModeSelect')?.value || 'accelerate', nextSwitchAt: 0, switchCount: 0, axisIndex: null, padIndex: null, padId: '', inZoneMs: 0, activeMs: 0, samples: {}, calibrating: false, calibrationStart: 0 };
+        state.comms = { current: null, nextAt: 0, startedAt: 0 };
+        state.radar = { current: null, nextAt: 0, sweep: 0, hitCount: 0 };
+        state.gamepadButtons = { previous: [] };
+        $('eventLog').innerHTML = '<div class="empty">开始任务后，这里会显示响应事件。</div>';
+        $('commsPrompt').textContent = '等待任务开始'; $('commsHint').textContent = '开始后记住频道编号，并按 7–10 选择。'; $('responseGrid').innerHTML = '';
+        $('radarStatus').textContent = '等待任务开始'; $('radarSide').textContent = '—'; $('radarDistance').textContent = '—'; $('throttleModeSelect').disabled = false;
+        setStatus('待机'); $('timeLeft').textContent = fmtTime(state.durationMs / 1000);
+        $('startBtn').disabled = false; $('pauseBtn').disabled = true; $('endBtn').disabled = true; $('pauseBtn').textContent = '暂停';
+        updateMetrics(); initPanels(); applyDisabledTaskUi();
+      }
+
+      function beginSession() {
+        state.enabledTasks = readEnabledTasks();
+        const duration = Number($('durationInput').value) || 300;
+        state.durationMs = duration * 1000; state.difficulty = Number($('difficultyInput').value); state.throttle.mode = $('throttleModeSelect').value; state.throttle.switchCount = 0; state.throttle.nextSwitchAt = 0; updateThrottleUi(); $('throttleModeSelect').disabled = true; state.running = true; state.paused = false; state.ended = false; state.startAt = now(); state.lastFrame = now(); state.elapsedMs = 0; state.monitorNextAt = isTaskEnabled('monitor') ? 2500 : Infinity; state.comms.nextAt = isTaskEnabled('comms') ? 1500 : Infinity; state.radar.nextAt = isTaskEnabled('radar') ? 3500 : Infinity;
+        if (isTaskEnabled('throttle')) scheduleThrottleSwitch(true);
+        state.events = []; state.responses = []; state.correct = 0; state.markers = 0; state.tracking.insideMs = 0; state.tracking.activeMs = 0; state.tracking.score = 0; state.throttle.inZoneMs = 0; state.throttle.activeMs = 0; state.radar.hitCount = 0;
+        initPanels(); applyDisabledTaskUi(); syncTaskSettingsUi();
+        $('eventLog').innerHTML = '<div class="empty">等待第一个事件…</div>'; setStatus('运行中'); $('startBtn').disabled = true; $('pauseBtn').disabled = false; $('endBtn').disabled = false;
+        initSchedule(); logEvent('session', 'start', { trial: $('seedInput').value, eventPlan, rates:MATBTiming.profiles[window.experimentLoad || 'low'] });
+        frameId = requestAnimationFrame(loop);
+      }
+      function togglePause() { if (!state.running) return; state.paused = !state.paused; if (state.paused) { state.pausedAt = now(); setStatus('已暂停'); $('pauseBtn').textContent = '继续'; logEvent('session', 'pause'); } else { state.startAt += now() - state.pausedAt; state.lastFrame = now(); setStatus('运行中'); $('pauseBtn').textContent = '暂停'; logEvent('session', 'resume'); frameId = requestAnimationFrame(loop); } }
+      function endSession(auto = false) { cancelAnimationFrame(frameId); if (!state.running) return; state.running = false; state.paused = false; state.ended = true; state.comms.current = null; state.radar.current = null; state.throttle.calibrating = false; state.throttle.nextSwitchAt = 0; $('throttleModeSelect').disabled = false; $('responseGrid').innerHTML = ''; $('commsPrompt').textContent = isTaskEnabled('comms') ? '会话结束' : '任务关闭'; $('commsHint').textContent = isTaskEnabled('comms') ? '本次会话已结束，可导出事件数据。' : '可在实验设置中重新启用此模块。'; $('radarStatus').textContent = isTaskEnabled('radar') ? '会话结束' : '任务关闭'; $('radarSide').textContent = '—'; $('radarDistance').textContent = '—'; setStatus('已结束'); $('startBtn').disabled = false; $('pauseBtn').disabled = true; $('endBtn').disabled = true; $('pauseBtn').textContent = '暂停'; syncTaskSettingsUi(); logEvent('session', auto ? 'timeout' : 'end'); updateMetrics(); }
+
+      function loop(ts) {
+        if (!state.running || state.paused) return;
+        const dt = Math.min(80, ts - state.lastFrame); state.lastFrame = ts; state.elapsedMs = Math.max(0, ts - state.startAt);
+        if (state.elapsedMs >= state.durationMs) { endSession(true); return; }
+        updateTracking(dt); updateMonitors(dt); updateThrottle(dt); updateComms(); updateRadar(dt); pollGamepad();
+        if (ts - state.lastUi > 120) { state.lastUi = ts; updateHud(); updateMetrics(); }
+        drawTracking(); frameId = requestAnimationFrame(loop);
+      }
+
+      function updateTracking(dt) {
+        if (!isTaskEnabled('tracking')) return;
+        const d = state.difficulty; const t = state.elapsedMs / 1000; const speed = 120 + d * 36; state.tracking.speed = speed;
+        const dx = (state.keys.has('d') ? 1 : 0) - (state.keys.has('a') ? 1 : 0);
+        const dy = (state.keys.has('s') ? 1 : 0) - (state.keys.has('w') ? 1 : 0);
+        const norm = Math.hypot(dx, dy) || 1; state.tracking.x = clamp(state.tracking.x + dx / norm * speed * dt / 1000, 22, canvas.width - 22); state.tracking.y = clamp(state.tracking.y + dy / norm * speed * dt / 1000, 22, canvas.height - 22);
+        const margin = 100 - d * 9; state.tracking.tx = canvas.width / 2 + Math.sin(t * (.45 + d * .08)) * (canvas.width * .24) + Math.sin(t * .21) * 20; state.tracking.ty = canvas.height / 2 + Math.cos(t * (.57 + d * .05)) * (canvas.height * .25) + Math.cos(t * .17) * 25;
+        if (window.experimentDisturbance) {
+          state.tracking.x = clamp(state.tracking.x + (Math.sin(t*2.3)*34 + Math.sin(t*5.7)*15)*dt/1000,22,canvas.width-22);
+          state.tracking.y = clamp(state.tracking.y + (Math.cos(t*1.9)*30 + Math.sin(t*4.1)*13)*dt/1000,22,canvas.height-22);
+        }
+        const error = Math.hypot(state.tracking.x - state.tracking.tx, state.tracking.y - state.tracking.ty); state.tracking.activeMs += dt; if (error < margin) { state.tracking.insideMs += dt; state.tracking.score += dt * (1.2 + d * .22); }
+        $('trackingError').textContent = `${Math.round(error)} px`;
+      }
+      function drawTracking() {
+        const d = state.difficulty; const t = state.elapsedMs / 1000; ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height); g.addColorStop(0, '#061321'); g.addColorStop(1, '#0a2030'); ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(57, 213, 255, .1)'; ctx.lineWidth = 1; for (let x = 0; x < canvas.width; x += 46) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 0; y < canvas.height; y += 46) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+        for (let i = 0; i < 26; i++) { const sx = (i * 83 + 17) % canvas.width; const sy = (i * 47 + 29) % canvas.height; ctx.fillStyle = `rgba(155, 222, 255, ${.18 + (i % 3) * .1})`; ctx.fillRect(sx, sy, 1.2, 1.2); }
+        const radius = 100 - d * 9; ctx.beginPath(); ctx.arc(state.tracking.tx, state.tracking.ty, radius, 0, Math.PI * 2); ctx.fillStyle = 'rgba(89,239,173,.06)'; ctx.fill(); ctx.strokeStyle = 'rgba(89,239,173,.8)'; ctx.lineWidth = 2; ctx.setLineDash([5, 7]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(state.tracking.tx, state.tracking.ty, 5, 0, Math.PI * 2); ctx.fillStyle = '#59efad'; ctx.shadowColor = '#59efad'; ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
+        const pulse = 16 + Math.sin(t * 4) * 2; ctx.beginPath(); ctx.arc(state.tracking.x, state.tracking.y, pulse, 0, Math.PI * 2); ctx.fillStyle = 'rgba(57,213,255,.16)'; ctx.fill(); ctx.strokeStyle = '#39d5ff'; ctx.lineWidth = 2; ctx.stroke(); ctx.beginPath(); ctx.arc(state.tracking.x, state.tracking.y, 5, 0, Math.PI * 2); ctx.fillStyle = '#c9f7ff'; ctx.fill();
+        ctx.fillStyle = 'rgba(216,239,255,.62)'; ctx.font = '11px ui-monospace, monospace'; ctx.fillText('TARGET LOCK', 15, 22); ctx.fillText(`SECTOR ${String(Math.floor(t / 10) + 1).padStart(2, '0')}`, canvas.width - 92, 22);
+      }
+
+      function scheduleMonitorFault() { if (!isTaskEnabled('monitor')) return; const available = state.monitors.filter(m => !m.fault); if (!available.length) return; const m = choice(available); m.fault = true; m.startedAt = state.elapsedMs; m.value = random(8, 24); logEvent('monitor', 'fault', { channel: m.name, eventIndex:eventCursor.monitor+1, scheduledOnsetMs:eventPlan.monitor[eventCursor.monitor] }); }
+      function updateMonitors(dt) { if (!isTaskEnabled('monitor')) return; const d = state.difficulty; state.monitors.forEach((m, i) => { if (!m.fault) { m.value = clamp(m.value + random(-1.8, 1.8) * dt / 100, 5, 96); } else { m.value = clamp(m.value - (0.8 + d * .12) * dt / 100, 3, 32); if (state.elapsedMs - m.startedAt > 4300 - d * 250) { pushResponse('monitor', false, state.elapsedMs - m.startedAt, m.name, 'timeout'); m.fault = false; m.value = random(52, 74); } } $('monitor-gauge-' + i).style.width = `${m.value}%`; $('monitor-value-' + i).textContent = `${Math.round(m.value)}%`; $('monitor-' + i).classList.toggle('fault', m.fault); $('monitor-status-' + i).textContent = m.fault ? 'FAULT' : 'STABLE'; }); if (state.elapsedMs >= state.monitorNextAt) { scheduleMonitorFault(); state.monitorNextAt = nextScheduled('monitor'); } }
+      function acknowledgeMonitor(i) { if(state.running && !state.paused) state.elapsedMs = now() - state.startAt; if (!isTaskEnabled('monitor') || !state.running || state.paused) return; const m = state.monitors[i]; if (!m) return; if (m.fault) { pushResponse('monitor', true, state.elapsedMs - m.startedAt, m.name, 'ACK'); m.fault = false; m.value = random(54, 78); } else { pushResponse('monitor', false, 0, 'FAULT', m.name); } }
+
+      function vibrateController(reason = 'radar_fail') {
+        if (!navigator.getGamepads) return;
+        const pads = Array.from(navigator.getGamepads()).filter(Boolean);
+        const pad = (state.throttle.padId ? pads.find(p => p.id === state.throttle.padId) : null) || pads.find(p => /pxn|2113|joystick|flight/i.test(p.id)) || pads[0];
+        if (!pad) return;
+        const effect = { duration: 260, startDelay: 0, strongMagnitude: .85, weakMagnitude: .65 };
+        try {
+          if (pad.vibrationActuator?.playEffect) {
+            const result = pad.vibrationActuator.playEffect('dual-rumble', effect);
+            if (result?.catch) result.catch(() => {});
+          } else if (pad.hapticActuators?.[0]?.pulse) {
+            const result = pad.hapticActuators[0].pulse(.85, effect.duration);
+            if (result?.catch) result.catch(() => {});
+          }
+          logEvent('radar', 'haptic', { reason, device: pad.id || 'gamepad' });
+        } catch { /* 浏览器或设备不支持震动时继续运行任务 */ }
+      }
+
+      function pollGamepad() {
+        if (!navigator.getGamepads) return;
+        const pads = Array.from(navigator.getGamepads()).filter(Boolean);
+        const preferred = pads.find(p => /pxn|2113|joystick|flight/i.test(p.id)) || pads[0];
+        if (!preferred) {
+          state.throttle.padIndex = null; state.throttle.padId = ''; state.gamepadButtons.previous = [];
+          if (!isTaskEnabled('throttle')) return;
+          if (state.throttle.calibrating && performance.now() - state.throttle.calibrationStart >= 2200) {
+            state.throttle.calibrating = false; $('controllerStatus').textContent = '未连接'; $('controllerStatus').className = 'controller-status'; logEvent('throttle', 'calibration_end', { axisIndex: null, range: 0, device: 'none' });
+          } else if (!state.throttle.calibrating) { $('controllerStatus').textContent = '未连接'; $('controllerStatus').className = 'controller-status'; }
+          return;
+        }
+        state.throttle.padIndex = preferred.index; state.throttle.padId = preferred.id;
+        const pressed = preferred.buttons.map(button => Boolean(button.pressed));
+        pressed.forEach((isPressed, index) => {
+          if (!isPressed || state.gamepadButtons.previous[index]) return;
+          if (index >= 2 && index <= 5 && isTaskEnabled('monitor')) acknowledgeMonitor(index - 2);
+          if (index >= 6 && index <= 9 && isTaskEnabled('comms')) answerComms(index === 9 ? '10' : String(index + 1));
+        });
+        state.gamepadButtons.previous = pressed;
+        if (!isTaskEnabled('throttle')) return;
+        if (state.throttle.calibrating) {
+          preferred.axes.forEach((value, index) => {
+            if (!state.throttle.samples[index]) state.throttle.samples[index] = { min: value, max: value };
+            state.throttle.samples[index].min = Math.min(state.throttle.samples[index].min, value);
+            state.throttle.samples[index].max = Math.max(state.throttle.samples[index].max, value);
+          });
+          const elapsed = performance.now() - state.throttle.calibrationStart;
+          if (elapsed >= 2200) finishThrottleCalibration();
+        }
+        const axis = state.throttle.axisIndex;
+        const raw = axis == null ? 0 : Number(preferred.axes[axis] ?? 0);
+        state.throttle.raw = raw;
+        state.throttle.value = axis == null ? 50 : Math.round(clamp((raw + 1) / 2 * 100, 0, 100));
+        updateThrottleUi();
+      }
+      function startThrottleCalibration() {
+        if (!isTaskEnabled('throttle') || state.running) return;
+        state.throttle.calibrating = true; state.throttle.calibrationStart = performance.now(); state.throttle.samples = {};
+        $('controllerStatus').textContent = '校准中：移动油门'; $('controllerStatus').className = 'controller-status calibrating';
+        logEvent('throttle', 'calibration_start', { device: state.throttle.padId || 'none' });
+      }
+      function finishThrottleCalibration() {
+        const entries = Object.entries(state.throttle.samples);
+        const best = entries.sort((a, b) => (b[1].max - b[1].min) - (a[1].max - a[1].min))[0];
+        state.throttle.calibrating = false;
+        if (best && best[1].max - best[1].min > 0.12) state.throttle.axisIndex = Number(best[0]);
+        $('controllerStatus').textContent = state.throttle.axisIndex == null ? '未识别油门轴' : '已连接'; $('controllerStatus').className = `controller-status ${state.throttle.axisIndex == null ? '' : 'connected'}`;
+        logEvent('throttle', 'calibration_end', { axisIndex: state.throttle.axisIndex, range: best ? Number((best[1].max - best[1].min).toFixed(3)) : 0 });
+      }
+      function cycleThrottleAxis(delta) { if (!isTaskEnabled('throttle') || state.running) return; state.throttle.axisIndex = Math.max(0, (state.throttle.axisIndex == null ? 0 : state.throttle.axisIndex) + delta); updateThrottleUi(); logEvent('throttle', 'axis_select', { axisIndex: state.throttle.axisIndex }); }
+      function scheduleThrottleSwitch(initial = false) {
+        const d = state.difficulty || 3;
+        const minMs = initial ? 7000 - d * 350 : 6500 - d * 300;
+        const maxMs = initial ? 12000 - d * 500 : 11500 - d * 450;
+        state.throttle.nextSwitchAt = state.elapsedMs + random(Math.max(3500, minMs), Math.max(5000, maxMs));
+      }
+      function updateThrottle(dt) {
+        if (!isTaskEnabled('throttle')) return;
+        state.throttle.activeMs += dt;
+        if (state.running && state.throttle.nextSwitchAt > 0 && state.elapsedMs >= state.throttle.nextSwitchAt) {
+          const previous = state.throttle.mode;
+          state.throttle.mode = previous === 'accelerate' ? 'decelerate' : 'accelerate';
+          state.throttle.switchCount += 1;
+          scheduleThrottleSwitch(false);
+          updateThrottleUi();
+          logEvent('throttle', 'mode_switch', { from: previous, to: state.throttle.mode, switchCount: state.throttle.switchCount, zone: [getThrottleProfile().min, getThrottleProfile().max] });
+        }
+        const value = state.throttle.value;
+        const profile = getThrottleProfile();
+        if (value >= profile.min && value <= profile.max) state.throttle.inZoneMs += dt;
+        updateThrottleUi();
+      }
+      function updateThrottleUi() {
+        const value = clamp(Number(state.throttle.value) || 0, 0, 100);
+        const profile = getThrottleProfile();
+        $('throttleValue').textContent = `${value}%`; $('throttleBar').style.width = `${value}%`; $('throttleAxis').textContent = state.throttle.axisIndex == null ? '自动' : state.throttle.axisIndex; $('throttleRaw').textContent = Number(state.throttle.raw || 0).toFixed(2); $('throttleBand').textContent = value < profile.min ? '低于区间' : value > profile.max ? '高于区间' : '最佳区间'; $('throttleZoneLabel').textContent = `${profile.label} · 最佳区间 ${profile.min}–${profile.max}%`;
+        const zone = document.querySelector('.throttle-zone'); if (zone) { zone.style.left = `${profile.min}%`; zone.style.width = `${profile.max - profile.min}%`; }
+        if (state.throttle.padIndex != null && !state.throttle.calibrating) { $('controllerStatus').textContent = state.throttle.axisIndex == null ? '已连接，待校准' : '已连接'; $('controllerStatus').className = `controller-status ${state.throttle.axisIndex == null ? '' : 'connected'}`; }
+      }
+
+      function scheduleRadar() { state.radar.nextAt = state.elapsedMs + random(4200 - state.difficulty * 300, 7200 - state.difficulty * 450); }
+      function updateRadar(dt) {
+        if (!isTaskEnabled('radar')) return;
+        state.radar.sweep = (state.radar.sweep + dt * (0.0015 + state.difficulty * 0.00025)) % (Math.PI * 2);
+        if (state.radar.current) {
+          const r = state.radar.current; const age = state.elapsedMs - r.startedAt; r.progress = clamp(age / 2000, 0, 1);
+          $('radarDistance').textContent = `${Math.round((1 - r.progress) * 100)}%`; $('radarSide').textContent = r.side === 'left' ? 'LEFT FRONT' : 'RIGHT FRONT'; $('radarStatus').textContent = '快速接近';
+          if (age >= 2000) { pushResponse('radar', false, 2000, r.side, 'timeout'); vibrateController('timeout'); state.radar.current = null; $('radarStatus').textContent = '目标消失'; $('radarSide').textContent = '—'; $('radarDistance').textContent = '—'; scheduleRadar(); }
+        } else if (state.elapsedMs >= state.radar.nextAt) {
+          const side = Math.random() < .5 ? 'left' : 'right'; state.radar.current = { side, startedAt: state.elapsedMs, progress: 0 }; logEvent('radar', 'approach', { expected: side });
+        }
+        drawRadar();
+      }
+      function answerRadar(key) { if(state.running && !state.paused) state.elapsedMs = now() - state.startAt;
+        if (!isTaskEnabled('radar') || !state.running || state.paused || !state.radar.current) return false;
+        const r = state.radar.current; const expected = r.side === 'left' ? 'ArrowLeft' : 'ArrowRight'; const correct = key === expected; pushResponse('radar', correct, state.elapsedMs - r.startedAt, r.side, key); if (!correct) vibrateController('wrong_direction'); state.radar.current = null; $('radarStatus').textContent = correct ? '拦截确认' : '方向错误'; $('radarSide').textContent = '—'; $('radarDistance').textContent = '—'; scheduleRadar(); return true;
+      }
+      function drawRadar() {
+        if (!radarCtx) return;
+        const w = radarCanvas.width, h = radarCanvas.height, cx = w / 2, cy = h - 16; radarCtx.clearRect(0, 0, w, h); radarCtx.fillStyle = '#120b15'; radarCtx.fillRect(0, 0, w, h);
+        radarCtx.strokeStyle = 'rgba(255,107,123,.2)'; radarCtx.lineWidth = 1; for (const radius of [55, 105, 155, 205]) { radarCtx.beginPath(); radarCtx.arc(cx, cy, radius, Math.PI, Math.PI * 2); radarCtx.stroke(); } radarCtx.beginPath(); radarCtx.moveTo(28, cy); radarCtx.lineTo(w - 28, cy); radarCtx.stroke();
+        radarCtx.save(); radarCtx.translate(cx, cy); radarCtx.rotate(state.radar.sweep - Math.PI / 2); radarCtx.strokeStyle = 'rgba(89,239,173,.8)'; radarCtx.beginPath(); radarCtx.moveTo(0, 0); radarCtx.lineTo(0, -205); radarCtx.stroke(); radarCtx.restore();
+        if (state.radar.current) { const r = state.radar.current; const angle = r.side === 'left' ? Math.PI * 1.25 : Math.PI * 1.75; const radius = 190 * (1 - r.progress); const x = cx + Math.cos(angle) * radius; const y = cy + Math.sin(angle) * radius; radarCtx.fillStyle = '#ff5266'; radarCtx.shadowColor = '#ff5266'; radarCtx.shadowBlur = 18; radarCtx.beginPath(); radarCtx.arc(x, y, 6 + r.progress * 4, 0, Math.PI * 2); radarCtx.fill(); radarCtx.shadowBlur = 0; }
+        radarCtx.fillStyle = 'rgba(216,239,255,.6)'; radarCtx.font = '11px ui-monospace, monospace'; radarCtx.fillText('LEFT FRONT', 28, h - 26); radarCtx.fillText('RIGHT FRONT', w - 95, h - 26);
+      }
+
+      function updateComms() {
+        if (!isTaskEnabled('comms')) return;
+        if (state.comms.current && state.elapsedMs - state.comms.current.startedAt > 6500) {
+          const c = state.comms.current;
+          pushResponse('comms', false, state.elapsedMs - c.startedAt, c.expected, 'timeout');
+          state.comms.current = null;
+          $('commsPrompt').textContent = '指令超时';
+          $('commsHint').textContent = `正确答案：${c.expected}`;
+          $('responseGrid').innerHTML = '';
+        }
+        if (!state.comms.current && state.elapsedMs >= state.comms.nextAt) {
+          const code = choice(responseOptions);
+          state.comms.current = { expected: code, startedAt: state.elapsedMs };
+          state.comms.nextAt = nextScheduled('comms');
+          $('commsPrompt').textContent = `频道 ${code}`;
+          $('commsHint').textContent = '请点击对应数字，或按 7 / 8 / 9 / 0（10）';
+          $('responseGrid').innerHTML = responseOptions.map(v => `<button class="response-btn" data-response="${v}">${v}</button>`).join('');
+          document.querySelectorAll('[data-response]').forEach(btn => btn.addEventListener('click', () => answerComms(btn.dataset.response)));
+          logEvent('comms', 'prompt', { expected: code, eventIndex:eventCursor.comms, scheduledOnsetMs:eventPlan.comms[eventCursor.comms-1] });
+        }
+      }
+      function answerComms(actual) { if(state.running && !state.paused) state.elapsedMs = now() - state.startAt; if (!isTaskEnabled('comms') || !state.running || state.paused || !state.comms.current) return; const c = state.comms.current; const rt = state.elapsedMs - c.startedAt; const correct = String(actual) === String(c.expected); pushResponse('comms', correct, rt, c.expected, actual); state.comms.current = null; $('commsPrompt').textContent = correct ? '频道确认成功' : '频道选择错误'; $('commsHint').textContent = correct ? '下一条频道即将到来' : `正确频道：${c.expected}`; $('responseGrid').innerHTML = ''; }
+
+      function updateHud() { $('timeLeft').textContent = fmtTime((state.durationMs - state.elapsedMs) / 1000); $('trackingHold').textContent = `${state.tracking.activeMs ? Math.round(state.tracking.insideMs / state.tracking.activeMs * 100) : 0}%`; $('trackingScore').textContent = Math.round(state.tracking.score); $('trackingSpeed').textContent = `${Math.round(state.tracking.speed)} px/s`; $('eventMetric').textContent = state.events.length; $('markerMetric').textContent = state.markers; }
+      function updateMetrics() { const total = state.responses.length; const acc = total ? state.correct / total : 0; const rt = state.responses.filter(r => Number.isFinite(r.rtMs) && r.rtMs > 0); const meanRt = rt.length ? rt.reduce((a, b) => a + b.rtMs, 0) / rt.length : 0; const hold = state.tracking.activeMs ? state.tracking.insideMs / state.tracking.activeMs : 0; const throttleHold = state.throttle.activeMs ? state.throttle.inZoneMs / state.throttle.activeMs : 0; const throttleInstability = 1 - throttleHold; const trackingPenalty = isTaskEnabled('tracking') ? (1 - hold) * .16 : 0; const throttlePenalty = isTaskEnabled('throttle') ? throttleInstability * .12 : 0; const radarPenalty = isTaskEnabled('radar') && state.radar.current ? .1 : 0; const load = clamp((state.difficulty - 1) / 4 * .4 + (1 - acc) * .22 + trackingPenalty + throttlePenalty + radarPenalty * .1, 0, 1); state.metrics = { accuracy: total ? acc : null, meanRtMs: meanRt || null, load }; $('accuracyMetric').textContent = total ? `${Math.round(acc * 100)}%` : '—'; $('rtMetric').textContent = meanRt ? `${Math.round(meanRt)} ms` : '—'; $('loadMeter').style.width = `${Math.round(load * 100)}%`; $('loadLabel').textContent = !state.running && !state.ended ? '待机' : load < .35 ? '低负荷' : load < .68 ? '中负荷' : '高负荷'; publishMonitorSnapshot(); }
+
+      function addMarker(source = 'button') { if (!state.running || state.paused) return; state.markers += 1; logEvent('marker', 'sync', { source, markerIndex: state.markers }); updateHud(); }
+      function exportData() { const profile = getThrottleProfile(); const payload = { schema: 'matb-web-v1', trial: $('seedInput').value, mode: $('modeSelect').value, durationSec: state.durationMs / 1000, difficulty: state.difficulty, enabledTasks: { ...state.enabledTasks }, startedAt: state.startAt ? new Date(Date.now() - state.elapsedMs).toISOString() : null, endedAt: new Date().toISOString(), summary: { accuracy: state.responses.length ? state.correct / state.responses.length : null, meanRtMs: state.responses.length ? state.responses.filter(r => r.rtMs > 0).reduce((a, b) => a + b.rtMs, 0) / Math.max(1, state.responses.filter(r => r.rtMs > 0).length) : null, trackingHold: state.tracking.activeMs ? state.tracking.insideMs / state.tracking.activeMs : null, trackingScore: state.tracking.score, throttleMode: state.throttle.mode, throttleZone: [profile.min, profile.max], throttleHold: state.throttle.activeMs ? state.throttle.inZoneMs / state.throttle.activeMs : null, markers: state.markers }, events: state.events };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${$('seedInput').value || 'matb'}_matb_${new Date().toISOString().replace(/[:.]/g, '-')}.json`; a.click(); URL.revokeObjectURL(a.href); }
+
+      $('difficultyInput').addEventListener('input', (e) => { state.difficulty = Number(e.target.value); $('difficultyLabel').textContent = `${state.difficulty} / 5`; });
+      $('durationInput').addEventListener('change', () => { if (!state.running) { state.durationMs = clamp(Number($('durationInput').value) || 120, 30, 1800) * 1000; $('timeLeft').textContent = fmtTime(state.durationMs / 1000); } });
+      $('startBtn').addEventListener('click', beginSession); $('pauseBtn').addEventListener('click', togglePause); $('endBtn').addEventListener('click', () => endSession(false)); $('markerBtn').addEventListener('click', () => addMarker('button')); $('exportBtn').addEventListener('click', exportData);
+      $('monitorBtn').addEventListener('click', () => { const win = window.open('MATB_Monitor_v2.html', 'matb-monitor'); if (win) win.focus(); });
+      $('calibrateBtn').addEventListener('click', startThrottleCalibration); $('axisPrevBtn').addEventListener('click', () => cycleThrottleAxis(-1)); $('axisNextBtn').addEventListener('click', () => cycleThrottleAxis(1));
+      $('throttleModeSelect').addEventListener('change', (e) => { if (!isTaskEnabled('throttle')) return; state.throttle.mode = e.target.value; updateThrottleUi(); if (state.running) logEvent('throttle', 'mode_select', { mode: state.throttle.mode, zone: [getThrottleProfile().min, getThrottleProfile().max] }); });
+      document.querySelectorAll('[data-task-toggle]').forEach((input) => input.addEventListener('change', () => { if (state.running) return; state.enabledTasks = readEnabledTasks(); applyDisabledTaskUi(); publishMonitorSnapshot(); }));
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+        if (['w', 'a', 's', 'd'].includes(k) && isTaskEnabled('tracking')) state.keys.add(k);
+        if (/^[3-6]$/.test(k)) acknowledgeMonitor(Number(k) - 3);
+        if (['7', '8', '9'].includes(k)) answerComms(k);
+        if (k === '0') answerComms('10');
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') answerRadar(e.key);
+        if (k === 'm') addMarker('keyboard');
+      });
+      window.addEventListener('keyup', (e) => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; state.keys.delete(k); });
+
+      window.matbExperiment = {
+        configure(load, duration, trial, tasks = null) {
+          if(state.running) throw new Error('Task engine already running');
+          const axis = state.throttle.axisIndex;
+          resetSession(); state.throttle.axisIndex = axis; state.keys.clear();
+          $('durationInput').value = duration; $('difficultyInput').value = 3;
+          $('seedInput').value = trial;
+          document.querySelectorAll('[data-task-toggle]').forEach(input => {
+            input.checked = tasks ? tasks.includes(input.dataset.taskToggle) : ['tracking','monitor','radar'].includes(input.dataset.taskToggle) || (load === 'high' && ['throttle','comms'].includes(input.dataset.taskToggle));
+          });
+          window.experimentDisturbance = load === 'high';
+          window.experimentLoad = tasks ? 'high' : load;
+          const radarPanel = document.querySelector('[data-task-panel="radar"]');
+          const radarColumn = document.querySelector(load === 'low' && !tasks ? '.right-stack' : '.left-stack');
+          if(load === 'low' && !tasks) radarColumn.append(radarPanel); else radarColumn.prepend(radarPanel);
+          document.body.classList.toggle('low',load === 'low');
+          document.body.classList.toggle('solo',Boolean(tasks));
+          state.enabledTasks = readEnabledTasks(); applyDisabledTaskUi();
+        },
+        start: () => { state.keys.clear(); beginSession(); },
+        stop: () => endSession(false),
+        calibrate: startThrottleCalibration,
+        axis: cycleThrottleAxis,
+        snapshot: () => ({ elapsedMs:state.elapsedMs, tracking:{...state.tracking}, throttle:{value:state.throttle.value,raw:state.throttle.raw,axisIndex:state.throttle.axisIndex,padId:state.throttle.padId}, metrics:{...state.metrics} }),
+        ready: () => !state.throttle.calibrating,
+      };
+      window.addEventListener('blur', () => state.keys.clear());
+      document.body.classList.add('embedded');
+      initPanels(); resetSession();
+      setInterval(() => { pollGamepad(); if (state.running && !state.paused) updateMetrics(); }, 100);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Install the PyTorch build appropriate to the deployment hardware separately.
+torch>=2.5
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.2
+pandas>=1.5
+mne>=1.5
+geoopt>=0.5
+skorch>=0.15

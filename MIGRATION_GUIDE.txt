@@ -1,0 +1,23 @@
+MATB v2 migration package
+
+Contents:
+- MATB_Game_v2.html: main five-task paradigm
+- MATB_Monitor_v2.html: secondary-screen metrics, events, task status, and EEG placeholder
+- MATB_Monitor_v2.js: secondary-screen synchronization script
+- MATB_Game_v2_README.md: full feature documentation
+- start_matb.bat: starts a local HTTP server and opens the main screen
+
+Usage:
+1. Copy this entire folder to the new computer.
+2. Install Python 3 on the new computer.
+3. Double-click start_matb.bat.
+4. Move the main screen to the primary display. Click “打开副屏” or open MATB_Monitor_v2.html on the second display.
+5. Both pages must be served by the same local HTTP server; do not open them directly as file:// pages.
+
+If port 8765 is occupied, open PowerShell in this folder and run:
+  py -m http.server 8765
+Then open:
+  http://127.0.0.1:8765/MATB_Game_v2.html
+
+The current version reads PNX-2113PRO through the browser Gamepad API. EEG integration remains a reserved interface.
+Version: MATB v2 / 2026-11-13

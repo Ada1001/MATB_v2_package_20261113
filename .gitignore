@@ -1,0 +1,55 @@
+# Local environments and Python caches
+/runtime/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+
+# Experiment data, model weights, and generated results
+/data/
+/model/
+/recordings/
+/outputs/
+/online_agmnet/runtime/artifact/
+/online_agmnet/demo_data/*
+!/online_agmnet/demo_data/.gitkeep
+*.pt
+*.pth
+*.ckpt
+
+# Logs
+/logs/
+*.log
+*.log.*
+
+# Local figures and office documents
+/image/
+/word/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tif
+*.tiff
+*.svg
+*.doc
+*.docx
+*.docm
+*.xlsx
+*.xls
+*.pdf
+~$*
+
+# Editor and OS metadata
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MATB 实验范式采集</title><link rel="stylesheet" href="MATB_Experiment.css"></head>
+<body><header><div><b>MATB · 实验范式采集</b><small id="status">准备实验</small></div><nav><button id="monitor">打开任务副屏</button><button id="export">导出 JSON</button><button id="csv">导出标签 CSV</button><button id="abort" disabled>终止实验</button><button id="skip" title="调试：跳过当前阶段，数据将标记为跳过">Skip 跳过本阶段</button></nav></header>
+<div id="progress"></div><main id="stage"></main>
+<section id="taskArea" hidden><div id="taskBanner"></div><div id="taskWorkspace"><iframe id="engine" src="MATB_Experiment_Tasks.html" title="MATB 任务"></iframe><aside id="trainingGuide" hidden></aside><div id="taskCountdown" hidden role="status" aria-live="polite"><div><p>请熟悉任务界面</p><strong id="countdownNumber">3</strong><p>倒计时结束后开始</p></div></div></div></section>
+<footer id="notice">本地采集 · 数据仅保存在当前浏览器与手动导出文件中</footer>
+<script src="MATB_Experiment_Timing.js"></script><script src="MATB_EEG.js"></script><script src="MATB_Experiment.js"></script></body></html>
